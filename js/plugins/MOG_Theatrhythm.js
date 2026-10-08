@@ -1334,6 +1334,9 @@ Scene_Theatrhythm.prototype.execute_hit_actor = function(pos_id, string_id) {
 // * Execute Ani Hit Enemy
 //==============================
 Scene_Theatrhythm.prototype.executeAnimationHitEnemy = function(ani_id) {	
+    if (!Number.isInteger(ani_id) || ani_id <= 0 || !$dataAnimations[ani_id]) {
+        return;
+    }
     var request = {}
     this._spriteField._spriteTarget = this._enemySprite;
 	request.animationId = ani_id;
@@ -1614,7 +1617,7 @@ Scene_Theatrhythm.prototype.update_defeat_phase = function() {
 		case 3:
 			this._phase_sprite.opacity -= 3;
 			this._phase_sprite.scale.x += 0.02;
-			if (this._phase_sprite.opacity <= 0) {this.fadeOutAll();$gameSystem._theatrhythm_phase = 12;this._phase[2] = 4;SceneManager.pop();}
+			if (this._phase_sprite.opacity <= 0) {this.fadeOutAll();$gameSystem._theatrhythm_phase = 12;this._phase[2] = 4;SceneManager.goto(Scene_Gameover);}
 		    break; 				
 	};
 };
@@ -2096,6 +2099,7 @@ Sprite_TKeys.prototype.execute_miss = function(key,i) {
 	for (var e = 0; e < this._keys.length; e++) {
 		if (this._keys[e].x <= this._limit[1]) {keys_temp.push([this._keys[e].x,this._keys_h[e]]);};
 	};
+	if (keys_temp.length === 0) {return};
 	keys_temp.sort(function(a, b){return b[0]-a[0]});
 	$gameSystem._theatrhythm_key_data[0] = keys_temp[0][1];
 	$gameSystem._theatrhythm_key_data[1] = 0;

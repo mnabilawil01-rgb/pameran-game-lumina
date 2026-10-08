@@ -215,16 +215,6 @@
     }
 
     //-------------------------------------------------------------------
-    // Posisi (detik) lagu yang sedang diputar
-    //-------------------------------------------------------------------
-    function currentBgmTime() {
-        if (AudioManager._bgmBuffer && AudioManager._bgmBuffer.seek) {
-            return AudioManager._bgmBuffer.seek();
-        }
-        return 0;
-    }
-
-    //-------------------------------------------------------------------
     // Plugin Command
     //-------------------------------------------------------------------
     PluginManager.registerCommand(PLUGIN_NAME, "TheatrhythmBeatSync", function(data) {
@@ -255,7 +245,11 @@
             travelTime: travelTime,
             schedule: [],
             scheduleIndex: 0,
-            songStarted: false
+            songStarted: false,
+            pendingSongStart: false,
+            musicStarted: false,
+            musicStartDelay: 0,
+            battleStartFrame: 0
         };
 
         // speed & randomMode diteruskan sebagai placeholder (tidak dipakai
@@ -275,7 +269,7 @@
             if (Input.isTriggered("ok") || Input.isTriggered("cancel") || TouchInput.isTriggered()) {
                 SoundManager.playCursor();
                 this._phase[0] = 3;
-                this.startBeatSyncSong();
+                bs.pendingSongStart = true;
                 return;
             }
             return;
@@ -283,12 +277,43 @@
         _bts_update_start_phase.call(this);
     };
 
+    const _bts_scene_update = Scene_Theatrhythm.prototype.update;
+    Scene_Theatrhythm.prototype.update = function() {
+        _bts_scene_update.call(this);
+        const bs = $gameSystem._theatrhythm_beatsync;
+        const buttonsReady =
+            this._sprite_buttons &&
+            this._sprite_buttons._bts_active &&
+            this._layout_buttons_data &&
+            this._layout_buttons_data[0] !== -1;
+        if (
+            bs &&
+            bs.pendingSongStart &&
+            buttonsReady &&
+            $gameSystem._theatrhythm_phase === 1
+        ) {
+            bs.pendingSongStart = false;
+            this.startBeatSyncSong();
+        }
+    };
+
     Scene_Theatrhythm.prototype.startBeatSyncSong = function() {
         const bs = $gameSystem._theatrhythm_beatsync;
-        AudioManager.playBgm({ name: bs.bgmName, volume: bs.bgmVolume, pitch: 100, pan: 0 });
+        AudioManager.stopBgm();
         bs.schedule = buildBeatSchedule(bs.bpm, bs.offsetMs, bs.pattern, 2000);
         bs.scheduleIndex = 0;
         bs.songStarted = true;
+        bs.musicStartDelay = Math.max(0, bs.travelTime - bs.offsetMs / 1000);
+        bs.battleStartFrame = Graphics.frameCount;
+        bs.musicStarted = bs.musicStartDelay === 0;
+        if (bs.musicStarted) {
+            AudioManager.playBgm({
+                name: bs.bgmName,
+                volume: bs.bgmVolume,
+                pitch: 100,
+                pan: 0
+            });
+        }
     };
 
     //-------------------------------------------------------------------
@@ -361,18 +386,35 @@
     Sprite_TKeys.prototype.update_beat_scheduler = function() {
         const bs = $gameSystem._theatrhythm_beatsync;
         if (!bs || !bs.songStarted || $gameSystem._theatrhythm_phase !== 1) return;
-        const now = currentBgmTime();
+        const now = (Graphics.frameCount - bs.battleStartFrame) / 60;
+        if (!bs.musicStarted && now >= bs.musicStartDelay) {
+            bs.musicStarted = true;
+            AudioManager.playBgm({
+                name: bs.bgmName,
+                volume: bs.bgmVolume,
+                pitch: 100,
+                pan: 0
+            });
+        }
         while (bs.scheduleIndex < bs.schedule.length) {
-            const spawnAt = bs.schedule[bs.scheduleIndex] - bs.travelTime;
+            const spawnAt =
+                bs.musicStartDelay +
+                bs.schedule[bs.scheduleIndex] -
+                bs.travelTime;
             if (now < spawnAt) break;
+            const lateness = now - spawnAt;
+            if (lateness >= bs.travelTime) {
+                bs.scheduleIndex++;
+                continue;
+            }
             const slot = this._slotBusy.indexOf(false);
             if (slot === -1) break; // semua lajur penuh, coba lagi frame berikutnya
-            this.spawn_key_synced(slot);
+            this.spawn_key_synced(slot, lateness);
             bs.scheduleIndex++;
         }
     };
 
-    Sprite_TKeys.prototype.spawn_key_synced = function(i) {
+    Sprite_TKeys.prototype.spawn_key_synced = function(i, lateness) {
         this._keys_f[i] = false;
         this._keys_c[i] = Math.randomInt(4);
         this._keys_h[i] = Math.randomInt(this._batlers.length);
@@ -380,7 +422,7 @@
         this._keys_s[i] = false;
         const h = this._positions[this._keys_h[i]][1];
         this._keys[i].setFrame(this._cw * this._keys_c[i], 0, this._cw, this._ch);
-        this._keys[i].x = -this._cw;
+        this._keys[i].x = -this._cw + this._keysSpeed * 60 * lateness;
         this._keys[i].y = h;
         this._keys[i].scale.x = 1.0;
         this._keys[i].scale.y = 1.0;

@@ -222,7 +222,9 @@
     const params = PluginManager.parameters(pluginName);
 
     const MAX_ENTRIES   = Number(params.maxEntries || 5);
-    const TITLE          = String(params.title || "TOP SCORE");
+    const TITLE          = params.title === "TOP SCORE"
+        ? "SKOR TERTINGGI"
+        : String(params.title || "SKOR TERTINGGI");
     const WIN_WIDTH       = Number(params.windowWidth || 240);
     const MARGIN_R        = Number(params.marginRight || 16);
     const MARGIN_T         = Number(params.marginTop || 16);
@@ -233,7 +235,9 @@
     const RANK2_COLOR           = String(params.rank2Color || "#d7d7e0");
     const RANK3_COLOR            = String(params.rank3Color || "#cd8032");
     const TITLE_FONT_SIZE          = Number(params.titleFontSize || 26);
-    const SCORE_SUFFIX               = String(params.scoreSuffix || " pts");
+    const SCORE_SUFFIX               = params.scoreSuffix === "pts"
+        ? " poin"
+        : String(params.scoreSuffix || " poin");
     const ZEBRA_STRIPE                 = params.zebraStripe !== "false";
     const ZEBRA_COLOR                    = String(params.zebraColor || "rgba(255,255,255,0.06)");
     const USE_CUSTOM_TONE                  = params.useCustomTone === "true";
@@ -487,5 +491,13 @@
     Scene_Map.prototype.createLeaderboardWindow = function() {
         this._leaderboardWindow = new Window_Leaderboard();
         this.addWindow(this._leaderboardWindow);
+    };
+
+    const _Scene_Gameover_create = Scene_Gameover.prototype.create;
+    Scene_Gameover.prototype.create = function() {
+        _Scene_Gameover_create.call(this);
+        $gameSystem.setLeaderboardVisible(true);
+        this._leaderboardWindow = new Window_Leaderboard();
+        this.addChild(this._leaderboardWindow);
     };
 })();
