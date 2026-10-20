@@ -30,5 +30,6 @@ var $plugins =
 {"name":"LuminaTitleTutorial","status":true,"description":"Indonesian title menu and progression-safe tutorial.","parameters":{}},
 {"name":"LuminaLocalizationShop","status":true,"description":"Indonesian player text and native shop inventory details.","parameters":{}},
 {"name":"LuminaSoloFocus","status":true,"description":"Keeps the selected protagonist as the only party member and simplifies name/equipment UI.","parameters":{}},
-{"name":"LuminaEndScreens","status":true,"description":"Adds a completion screen for Lumina's final level.","parameters":{}}
+{"name":"LuminaEndScreens","status":true,"description":"Adds a completion screen for Lumina's final level.","parameters":{}},
+{"name":"TypingSoundMessage","status":true,"description":"Memainkan suara \"ngetik\" saat Show Text menampilkan karakter.","parameters":{"seName":"Cursor4","volume":"50","pitch":"100","pitchVariance":"8","pan":"0","interval":"2","skipSpaces":"true","disableSwitchId":"0"}}
 ];
