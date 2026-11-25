@@ -50,14 +50,12 @@ Tujuan utamanya adalah:
 
 ### 1. Pembukaan
 
-Game menggunakan **Level 1** sebagai titik awal pada konfigurasi saat ini (`startMapId` bernilai 3). Pemain mulai memasuki area dungeon dan dapat menjelajahi ruangan untuk menemukan musuh serta petunjuk.
-
-Ada pula peta khusus bernama `gender select`. Peta tersebut menampilkan pilihan:
+Game dimulai di peta `gender select` (`startMapId` bernilai 1), yang menampilkan pilihan:
 
 - `male`
 - `female`
 
-Setelah memilih, game memperlihatkan konfirmasi dan memindahkan karakter ke Lumina's Palace.
+Setelah memilih dan mengonfirmasi, game memindahkan karakter ke Lumina's Palace.
 
 ### 2. Lumina's Palace
 
@@ -259,6 +257,7 @@ Kontrol bawaan RPG Maker MZ bergantung pada perangkat dan mode bermain.
 - Toko senjata, armor, dan item.
 - Musik latar, SE, battle BGM, victory/defeat ME.
 - Efek visual Effekseer (`.efkefc`) untuk pertarungan dan skill.
+- Plugin leaderboard lokal dinonaktifkan agar tidak tertukar dengan papan P2R. Menu "Leaderboard P2R" mengecek endpoint API secara langsung; skor run dikirim saat run selesai. Jika API kosong atau request gagal, dialog menyediakan rincian diagnostik yang dapat disalin untuk tim P2R.
 
 ## Menjalankan Game
 

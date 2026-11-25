@@ -19,7 +19,7 @@
                 "untuk memilih dan bicara.",
                 "Esc atau X untuk kembali",
                 "atau membuka menu.",
-                "Nama karakter bisa diketik."
+                "Nama karakter mengikuti email akun P2R."
             ]
         },
         {
